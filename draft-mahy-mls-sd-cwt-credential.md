@@ -9,19 +9,19 @@ number:
 date:
 consensus: true
 v: 3
-area: SEC
-workgroup: MLS Working Group
+area: "Security"
+workgroup: "Messaging Layer Security"
 keyword:
  - MLS credential
  - SD-CWT
  - Selective Disclosure
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "Messaging Layer Security"
+  type: "Working Group"
+  mail: "mls@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/mls/"
+  github: "rohanmahy/mls-sd-cwt-credential"
+  latest: "https://rohanmahy.github.io/mls-sd-cwt-credential/draft-mahy-mls-sd-cwt-credential.html"
 
 author:
  -
