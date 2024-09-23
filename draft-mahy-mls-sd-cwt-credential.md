@@ -19,22 +19,22 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
+title: "Messaging Layer Security credentials using Selective Disclosure CBOR Web Tokens"
+abbrev: "MLS SD-CWT credentials"
 category: info
 
-docname: draft-todo-yourname-protocol-latest
+docname: draft-mahy-mls-sd-cwt-credential-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: SEC
+workgroup: MLS Working Group
 keyword:
- - next generation
- - unicorn
- - sparkling distributed ledger
+ - MLS credential
+ - SD-CWT
+ - Selective Disclosure
 venue:
   group: WG
   type: Working Group
@@ -45,9 +45,9 @@ venue:
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    fullname: Rohan Mahy
+    organization: Unaffiliated
+    email: rohan.ietf@gmail.com
 
 normative:
 
