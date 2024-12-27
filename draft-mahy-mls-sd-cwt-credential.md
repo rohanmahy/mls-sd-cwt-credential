@@ -90,7 +90,7 @@ A specific way to safely encrypt and decrypt disclosures only for members of the
 The audience in the SD-KBT is either a representation of the MLS group, or a higher-level application structure associated with an MLS group or tightly-coupled collection of groups (for example, a chat room which maintains one MLS group for the main discussion and another for moderators to discuss the moderation of the room) such that being in one group without the collection would be nonsensical.
 
 
-
+The subject in the SD-CWT represents a specific MLS client (for example a COSE key thumbprint, or a client ID URI). It should not use an identifier which represents multiple signature key pairs of the same type, or represents the same "user" on multiple devices.
 
 # Member-only disclosures
 
