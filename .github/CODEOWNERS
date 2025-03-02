@@ -1,3 +1,2 @@
-# Automatically generated CODEOWNERS
-# Regenerate with `make update-codeowners`
-draft-mahy-mls-sd-cwt-credential.md rohan.ietf@gmail.com
+# Manually generated CODEOWNERS
+draft-mahy-mls-sd-cwt-credential.md @rohanmahy
