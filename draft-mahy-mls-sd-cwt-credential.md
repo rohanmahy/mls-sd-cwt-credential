@@ -14,7 +14,10 @@ workgroup: "Messaging Layer Security"
 keyword:
  - MLS credential
  - SD-CWT
- - Selective Disclosure
+ - SD-KBT
+ - SD-JWT
+ - key binding
+ - selective disclosure
 venue:
   group: "Messaging Layer Security"
   type: "Working Group"
@@ -36,28 +39,33 @@ informative:
 
 --- abstract
 
-TODO Abstract
-
+The Messaging Layer Security (MLS) protocol contains Credentials used to authenticate an MLS client with a signature key pair.
+Selective Disclosure CBOR Web Tokens (SD-CWT) and Selective Disclosure JSON Web Tokens (SD-JWT) define token formats where the holder can selectively reveal claims about itself with strong integrity protection and cryptographic binding to the holder's key.
+This document defines MLS credentials for both these token types.
 
 --- middle
 
 # Introduction
 
-TODO Introduction
+This document defines new MLS {{!RFC9420}} credential types for SD-CWT {{!I-D.ietf-spice-sd-cwt}} and SD-JWT {{!I-D.ietf-oauth-selective-disclosure-jwt}} tokens respectively.
+The SD-CWT Credential contains a Selective Disclosure Key Binding Token (SD-KBT).
+The SD-JWT Credential contains SD-JWT with Key Binding (SD-JWT+KB), which could be represented in the traditional data format, or in a more compact binary encoding.
 
+The "holder" of one of these tokens could be the MLS client including the token in its Credential in its LeafNode (in a group or in a KeyPackage) or in an ExternalSender structure.
 
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
 
-# MLS Credential
+The term Credential is used as defined in {{Section 5.3 of !RFC9420}}.
+The terms MLS Distribution Service (DS) and MLS Authentication Service (AS) are used as defined in {{!I-D.ietf-mls-architecture}}.
+The terms MLS client, MLS group, LeafNode, KeyPackage, PublicMessage, PrivateMessage, ratchet tree, and GroupInfo are likewise common MLS terms defined in {{!RFC9420}}.
 
-~~~
-struct {
-    opaque blinded_claim_hash<V>;
-    opaque aead_encrypted_disclosure<V>;
-} EncryptedDisclosure;
+# New MLS Credential types
 
+This document extends the list of defined CredentialTypes in MLS to include `sd_cwt` and `sd_jwt` types. Additional syntax and semantics are defined in the following subsections.
+
+~~~ tls
 struct {
     CredentialType credential_type;
     select (Credential.credential_type) {
@@ -65,133 +73,110 @@ struct {
             opaque identity<V>;
         case x509:
             Certificate certificates<V>;
+        ...
         case sd_cwt:
             opaque sd_kbt<V>;
-            EncryptedDisclosure other_encrypted_disclosures<V>;
+        case sd_jwt:
+            SdJwt sd_jwt;
     };
 } Credential;
 ~~~
 
-An MLS SD-CWT Credential contains a Selective Disclosure Key Binding Token
-(SD-KBT).
+The MLS architecture {{!I-D.ietf-mls-architecture}} describes the Authentication Services as having the following three services (i.e. requirements):
 
+1. Issue credentials to clients that attest to bindings between identities and signature key pairs
+2. Enable a client to verify that a credential presented by another client is valid with respect to a reference identifier
+3. Enable a group member to verify that a credential represents the same client as another credential
 
-The credential can also include zero or more additional (encrypted) disclosures that are not disclosed in the SD-KBT.
-Each disclosure is separately AEAD encrypted with a per-disclosure unique ephemeral key.
-The per-disclosure encryption key allows the client to disclose an element to a specific subset of members, or (in the common case when the DS is privy to the ratchet tree) only to members of the group.
-A specific way to safely encrypt and decrypt disclosures only for members of the group is described in {{member-only-disclosures}}.
+The consequence of this is that the consumer of the SD-CWT or SD-JWT needs to be able to determine both the MLS client and the application identity referred to in a token in a Credential.
 
-## Specific header fields and claims in an SD-KBT and SD-CWT
+## MLS SD-CWT Credential
 
+An MLS SD-CWT Credential contains a single SD-KBT, containing an SD-CWT in the KBT protected header.
+The SD-CWT contains zero of more disclosures (in the `sd_claims` header field).
 
+Any party that can view the credential can read the disclosed claims.
+For example if LeafNodes are visible to the MLS DS, because MLS handshake messages are conveyed in PublicMessage, the disclosed claims would also be visible to the DS.
 
-
+The SD-CWT inside the credential MAY include zero or more encrypted disclosures (in the `sd_encrypted_claims` header field).
+Each encrypted disclosure is separately AEAD encrypted with a per-disclosure unique ephemeral key and salt.
+The per-disclosure encryption key allows the holder/MLS client to disclose an element to a specific subset of members, or (in the common case when the DS is privy to the ratchet tree) only to members of the group.
+A proof of concept to decrypt encrypted disclosures only for members of the group is described in {{?I-D.mahy-mls-member-secrets}}.
 
 The audience in the SD-KBT is either a representation of the MLS group, or a higher-level application structure associated with an MLS group or tightly-coupled collection of groups (for example, a chat room which maintains one MLS group for the main discussion and another for moderators to discuss the moderation of the room) such that being in one group without the collection would be nonsensical.
 
+The subject in the SD-CWT represents a specific MLS client (for example a COSE key thumbprint, or a client ID URI).
+It should not use an identifier which represents multiple signature key pairs of the same type, or represents the same "user" on multiple devices.
 
-The subject in the SD-CWT represents a specific MLS client (for example a COSE key thumbprint, or a client ID URI). It should not use an identifier which represents multiple signature key pairs of the same type, or represents the same "user" on multiple devices.
 
-# Member-only disclosures
+## MLS SD-JWT Credential
 
-This document defines two new MLS application components to facilitate sharing with members, its disclosures that are hidden from the DS.
-It also defines a new MLS key schedule Exporter Label, `member_identity_disclosure_secret`.
+The SD-JWT Credential can be represented in the classic SD-JWT+KB data format defined in {{Section 4 of !I-D.ietf-oauth-selective-disclosure-jwt}} (shown below), or in a more compact binary representation.
+MLS SD-JWT Credentials MUST include the Key Binding.
 
-These two application components provide a way to efficiently update encryption of disclosures, only when needed to achieve privacy from former members colluding with the DS.
+> **TODO**: Discuss if the LeafNode signature over the Credential is sufficient
 
-~~~ aasvg
-Leaf Node
-  SD-CWT Credential
-    SD-KBT
-      Disclosures
-      Issuer-signed CWT
-    Other disclosures
-     (individually AEAD encrypted) <------------------------------+
-                          ^                                       |
-                          |                                       |
-    leaf_index, blinded_claim_hash,                               |
-        encrypted_during_epoch                                    |
-        (individual disclosure key encrypted w/ per-epoch key)    |
-                          ^                                       |
-                          |        OldEpochMemberEncryptionKeys:  |
-                          |         (epoch, old_member_secret encrypted
-                          |          with current
-                          |          member_identity_disclosure_secret)
-                          |                    ^
-                          |                    |
-MLS Key schedule, member_identity_disclosure_secret
-~~~
-
-During any epoch when a disclosure is added or updated, the ephemeral keys are encrypted using the `member_identity_disclosure_secret` for the epoch about to be committed.
-Also the `member_identity_disclosure_secret`s for any previous epochs that are still being used to encrypt individual credentials are encrypted using the target epoch `member_identity_disclosure_secret` in the OldEpochMemberEncryptionKeys struct.
+The classic format uses only characters from the unpadded base64url character set (Section 5 of {{!RFC4648}}) plus the period (`.`) character to separate the three parts of the `Issuer-signed JWT`, and the tilde (`~`) character to separate disclosures from the other components.
 
 ~~~
+<Issuer-signed JWT>~<Disclosure 1>~<Disclosure 2>~...~<Disclosure N>~<KB-JWT>
+~~~
+{: title="SD-JWT+KB in classic format"}
+
+This document also defines a "compacted" format where each of the components of the `Issuer-signed JWT`, every Disclosure, and the `KB-JWT` are base64url decoded and stored in individual fields in the `SdJwt` struct.
+
+~~~ tls
 struct {
-    opaque bytes<V>;
-} BlindedClaimHash;
+    Bool compacted;
+    select (compacted) {
+        case true:
+            opaque protected<V>;
+            opaque payload<V>;
+            opaque signature<V>;
+            SdJwtDisclosure disclosures<V>;
+            opaque sd_jwt_key_binding<V>;
+        case false:
+            opaque sd_jwt_kb<V>;
+    };
+} SdJwt;
 
-struct {
-    uint32 leaf_index;
-    BlindedClaimHash blinded_claim_hash;
-    uint64 encrypted_during_epoch;
-} PerDisclosureEpochEncryptor;
-
-struct {
-    PerDisclosureEpochEncryptor per_disclosure_epoch_map<V>;
-} PerDisclosureEncryptionMap;
-
-PerDisclosureEncryptionMap per_disclosure_encryption_map;
-
-struct {
-    BlindedClaimHash removed_disclosures<V>;
-    PerDisclosureEpochEncryptor updated_disclosures<V>;
-} PerDisclosureEncryptionMapUpdate;
-
-PerDisclosureEncryptionMapUpdate per_disclosure_encryption_map_update;
-
-struct {
-    uint64 epoch;
-    opaque encrypted_member_secret<V>;
-} OldEpochEncryptionKey;
-
-struct {
-    OldEpochEncryptionKey old_epoch_encyption_keys<V>;
-} OldEpochMemberEncryptionKeys;
-
-OldEpochMemberEncryptionKeys old_epoch_member_encryption;
-OldEpochMemberEncryptionKeys old_epoch_member_encryption_update;
+enum {
+  false(0),
+  true(1)
+} Bool;
 ~~~
 
-## Post-Leaver Privacy (PLP)
+> The compacted variant allows implementations to tradeoff reduced size for the extra processing cost of base64url encoding and decoding the Credential.
 
-Using the scheme above, any member-only disclosures are encrypted with a member-only key from the epoch in which these disclosures originally appear.
-New joiners are provided a way to view the old per-epoch keys, so the new joiners can decrypt the member-only disclosures of pre-existing members, but that not every disclosure needs to be updated during every commit.
-
-In many implementations, the AS and DS are tightly-coupled, so hiding information from the DS which is known to the SD-CWT Issuer is not a priority.
-However, if PLP is desired, PLP updates are needed only when there is a Remove proposal (or SelfRemove proposal) and an Add proposal in the same or later commit.
-In other words if Alice removes Bob in epoch 4, but the next add isn't until Alice adds Cathy in epoch 6, then a PLP update needs to be included in epoch 6.
-This prevents Cathy from colluding with the DS to decrypt a disclosure about Bob.
-
-To perform a PLP update, the (PerDisclosureEpochEncryptor) ephemeral keys encrypted from any epoch or earlier than the epoch containing a Remove or SelfRemove, are re-encrypted using the about-to-be committed `member_identity_disclosure_secret`. As with any other commit, unused previous epochs are pruned from OldEpochMemberEncryptionKeys, and all the remaining `member_identity_disclosure_secret`s for old epochs are encrypted using the target epoch `member_identity_disclosure_secret`.
-
-# Generic form of EncryptWithLabel/DecryptWithLabel
-
-For later
-
-~~~
-encrypted_disclosure = EncryptWithLabel(public_key, label, context, plaintext)
-
-disclosure = DecryptWithLabel(private_key, label, context, kem_output, ciphertext)
-~~~
 
 # Security Considerations
 
-TODO Security
+The privacy considerations in SD-CWT, SD-JWT, and MLS apply.
+TODO more security.
 
+
+# Privacy Considerations
+
+The privacy considerations in SD-CWT and SD-JWT apply. The privacy considerations of MLS are largely discussed in {{!I-D.ietf-mls-architecture}}.
+TODO more privacy.
 
 # IANA Considerations
 
-This document has no IANA actions.
+This document requests IANA to add the following entries to the MLS Credential Types registry. Please replace RFCXXXX with the RFC of this document.
+
+## SD-CWT Credential
+
+- Value: 0x0005 (suggested)
+- Name: sd_cwt
+- Recommended: Y
+- Reference: RFCXXXX
+
+## SD-JWT Credential
+
+- Value: 0x0006 (suggested)
+- Name: sd_jwt
+- Recommended: Y
+- Reference: RFCXXXX
 
 
 --- back
@@ -199,4 +184,4 @@ This document has no IANA actions.
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
+Thanks to Richard Barnes for his comment.
