@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-18T00:42:13.919177+00:00",
+  "timestamp": "2025-09-21T00:48:12.231649+00:00",
   "repo": "rohanmahy/mls-sd-cwt-credential",
   "labels": [
     {
@@ -49,6 +49,23 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOM2Dpxc7Mo18h",
+      "title": "Are the SD-CWT Key Binding Token / SD-JWT key binding really necessary for use in MLS?",
+      "url": "https://github.com/rohanmahy/mls-sd-cwt-credential/issues/1",
+      "state": "OPEN",
+      "author": "rohanmahy",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "The Key Binding Token in SD-CWT provides the following functions:\n\n- prove possession of the holder private key\n- sign the specific set of disclosures used\n- to prevent replay of the SD-CWT when a cnonce is present\n- explicitly set the audience (ex: the room) if none is set \n- potentially have a smaller validity period than the CWT it contains\n- include other holder-asserted claims\n\nMLS provides a signature over the LeafNodeTBS struct and includes a signature key that needs to match the holder key in the SD-CWT. Replaying just an SD-CWT would be impossible without signing the LeafNode. It would also implicitly bind the audience to the the current MLS group (although not to an application-level structure like a MIMI room). In this way, we might be able to get away without having a KBT.\n\nLikewise an SD-JWT can contain an optional key binding token. The signature over the LeafNodeTBS struct covers the signature key and that needs to match the holder key in the SD-JWT.",
+      "createdAt": "2025-09-19T07:39:09Z",
+      "updatedAt": "2025-09-19T07:39:09Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": []
 }
