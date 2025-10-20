@@ -53,12 +53,15 @@ The SD-JWT Credential contains SD-JWT with Key Binding (SD-JWT+KB), which could 
 
 The "holder" of one of these tokens could be the MLS client including the token in its Credential in its LeafNode (in a group or in a KeyPackage) or in an ExternalSender structure.
 
+> Note: It is not necessary for an AS to selectively disclose any claims.
+In other words, an Identity Provider that normally generates JWT or CWT web tokens could generate the same claim set, as long as the confirmation key is included and verified by the issuer.
+
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
 
 The term Credential is used as defined in {{Section 5.3 of !RFC9420}}.
-The terms MLS Distribution Service (DS) and MLS Authentication Service (AS) are used as defined in {{!I-D.ietf-mls-architecture}}.
+The terms MLS Distribution Service (DS) and MLS Authentication Service (AS) are used as defined in {{!RFC9750}}.
 The terms MLS client, MLS group, LeafNode, KeyPackage, PublicMessage, PrivateMessage, ratchet tree, and GroupInfo are likewise common MLS terms defined in {{!RFC9420}}.
 
 # New MLS Credential types
@@ -82,7 +85,7 @@ struct {
 } Credential;
 ~~~
 
-The MLS architecture {{!I-D.ietf-mls-architecture}} describes the Authentication Services as having the following three services (i.e. requirements):
+The MLS architecture {{!RFC9750}} describes the Authentication Services as having the following three services (i.e. requirements):
 
 1. Issue credentials to clients that attest to bindings between identities and signature key pairs
 2. Enable a client to verify that a credential presented by another client is valid with respect to a reference identifier
