@@ -1,6 +1,6 @@
 ---
-title: "Messaging Layer Security credentials using Selective Disclosure CBOR Web Tokens"
-abbrev: "MLS SD-CWT credentials"
+title: "Messaging Layer Security Credentials using Selective Disclosure JSON and CBOR Web Tokens"
+abbrev: "MLS SD-JWT and SD-CWT Credentials"
 category: info
 
 docname: draft-mahy-mls-sd-cwt-credential-latest
@@ -157,7 +157,7 @@ TODO more security.
 
 # Privacy Considerations
 
-The privacy considerations in SD-CWT and SD-JWT apply. The privacy considerations of MLS are largely discussed in {{!I-D.ietf-mls-architecture}}.
+The privacy considerations in SD-CWT and SD-JWT apply. The privacy considerations of MLS are largely discussed in {{!RFC9750}}.
 TODO more privacy.
 
 # IANA Considerations
