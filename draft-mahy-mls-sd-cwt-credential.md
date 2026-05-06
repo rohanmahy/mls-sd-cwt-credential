@@ -47,9 +47,9 @@ This document defines MLS credentials for both these token types.
 
 # Introduction
 
-This document defines new MLS {{!RFC9420}} credential types for SD-CWT {{!I-D.ietf-spice-sd-cwt}} and SD-JWT {{!I-D.ietf-oauth-selective-disclosure-jwt}} tokens respectively.
+This document defines new MLS {{!RFC9420}} credential types for SD-CWT {{!I-D.ietf-spice-sd-cwt}} and SD-JWT {{!RFC9901}} tokens respectively.
 The SD-CWT Credential contains a Selective Disclosure Key Binding Token (SD-KBT).
-The SD-JWT Credential contains SD-JWT with Key Binding (SD-JWT+KB), which could be represented in the traditional data format, or in a more compact binary encoding.
+The SD-JWT Credential contains an SD-JWT with Key Binding (SD-JWT+KB), which could be represented in the traditional data format, or in a more compact binary encoding.
 
 The "holder" of one of these tokens could be the MLS client including the token in its Credential in its LeafNode (in a group or in a KeyPackage) or in an ExternalSender structure.
 
@@ -91,33 +91,35 @@ The MLS architecture {{!RFC9750}} describes the Authentication Services as havin
 2. Enable a client to verify that a credential presented by another client is valid with respect to a reference identifier
 3. Enable a group member to verify that a credential represents the same client as another credential
 
-The consequence of this is that the consumer of the SD-CWT or SD-JWT needs to be able to determine both the MLS client and the application identity referred to in a token in a Credential.
+The consequence of this is that the consumer of the SD-CWT or SD-JWT needs to be able to determine both the MLS client, and the application identity referred to in a token, in a Credential.
 
 ## MLS SD-CWT Credential
 
 An MLS SD-CWT Credential contains a single SD-KBT, containing an SD-CWT in the KBT protected header.
-The SD-CWT contains zero of more disclosures (in the `sd_claims` header field).
+The SD-CWT contains zero of more disclosures; if there are any disclosures they appear in the `sd_claims` header field, otherwise the header field is absent.
 
 Any party that can view the credential can read the disclosed claims.
-For example if LeafNodes are visible to the MLS DS, because MLS handshake messages are conveyed in PublicMessage, the disclosed claims would also be visible to the DS.
+For example if LeafNodes are visible to the MLS DS, because MLS handshake messages are conveyed via PublicMessage, the disclosed claims would also be visible to the DS.
 
-The SD-CWT inside the credential MAY include zero or more encrypted disclosures (in the `sd_encrypted_claims` header field).
+The SD-CWT inside the credential MAY include zero or more encrypted disclosures (in the `sd_encrypted_claims` header field if any encrypted disclosures are present).
 Each encrypted disclosure is separately AEAD encrypted with a per-disclosure unique ephemeral key and salt.
 The per-disclosure encryption key allows the holder/MLS client to disclose an element to a specific subset of members, or (in the common case when the DS is privy to the ratchet tree) only to members of the group.
 A proof of concept to decrypt encrypted disclosures only for members of the group is described in {{?I-D.mahy-mls-member-secrets}}.
 
 The audience in the SD-KBT is either a representation of the MLS group, or a higher-level application structure associated with an MLS group or tightly-coupled collection of groups (for example, a chat room which maintains one MLS group for the main discussion and another for moderators to discuss the moderation of the room) such that being in one group without the collection would be nonsensical.
 
-The subject in the SD-CWT represents a specific MLS client (for example a COSE key thumbprint, or a client ID URI).
+The subject in the SD-CWT represents a specific MLS client (for example a COSE key thumbprint, or a client ID URI such as a `mimi:` client URI as described in {{Section 3 of ?I-D.ietf-mimi-protocol}}).
 It should not use an identifier which represents multiple signature key pairs of the same type, or represents the same "user" on multiple devices.
+The SD-CWT MAY contain other claims which represent a distinct "user" identity.
+
+Using the MLS signature key as the confirmation key is encouraged.
+In this case, the confirmation key MAY be expressed using the COSE Key Thumbprint confirmation method.
 
 
 ## MLS SD-JWT Credential
 
-The SD-JWT Credential can be represented in the classic SD-JWT+KB data format defined in {{Section 4 of !I-D.ietf-oauth-selective-disclosure-jwt}} (shown below), or in a more compact binary representation.
+The SD-JWT Credential can be represented in the classic SD-JWT+KB data format defined in {{Section 4 of !RFC9901}} (shown below), or in a more compact binary representation.
 MLS SD-JWT Credentials MUST include the Key Binding.
-
-> **TODO**: Discuss if the LeafNode signature over the Credential is sufficient
 
 The classic format uses only characters from the unpadded base64url character set (Section 5 of {{!RFC4648}}) plus the period (`.`) character to separate the three parts of the `Issuer-signed JWT`, and the tilde (`~`) character to separate disclosures from the other components.
 
