@@ -113,7 +113,7 @@ It should not use an identifier which represents multiple signature key pairs of
 The SD-CWT MAY contain other claims which represent a distinct "user" identity.
 
 Using the MLS signature key as the confirmation key is encouraged.
-In this case, the confirmation key MAY be expressed using the COSE Key Thumbprint confirmation method.
+In this case, the confirmation key MAY be expressed using the COSE Key Thumbprint confirmation method {{!RFC9679}}.
 
 
 ## MLS SD-JWT Credential
@@ -156,13 +156,14 @@ enum {
 
 # Security Considerations
 
-The privacy considerations in SD-CWT, SD-JWT, and MLS apply.
+The security considerations in SD-CWT, SD-JWT, and MLS apply.
 TODO more security.
 
 
 # Privacy Considerations
 
-The privacy considerations in SD-CWT and SD-JWT apply. The privacy considerations of MLS are largely discussed in {{!RFC9750}}.
+The privacy considerations in SD-CWT and SD-JWT apply.
+The privacy considerations of MLS are largely discussed in {{!RFC9750}}.
 TODO more privacy.
 
 # IANA Considerations
