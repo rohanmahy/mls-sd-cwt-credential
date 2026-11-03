@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-01T02:54:23.002041+00:00",
+  "timestamp": "2026-11-03T04:19:52.803366+00:00",
   "repo": "rohanmahy/mls-sd-cwt-credential",
   "labels": [
     {
@@ -71,16 +71,24 @@
       "id": "I_kwDOM2Dpxc7S0Vku",
       "title": "Mention that an SD-JWT can contain a regular JWT",
       "url": "https://github.com/rohanmahy/mls-sd-cwt-credential/issues/2",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "rohanmahy",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "From [Section 4.1](https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-22.html#name-issuer-signed-jwt)\n\n\"An SD-JWT has a JWT component that MUST be signed using the Issuer's private key. It MUST NOT use the none algorithm.\"\n\nIn other words, most JWTs can be conveyed as an SD-JWT with no changes.\n\n",
       "createdAt": "2025-10-21T14:54:02Z",
-      "updatedAt": "2025-10-21T14:54:02Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-11-01T14:28:41Z",
+      "closedAt": "2026-11-01T14:28:41Z",
+      "comments": [
+        {
+          "author": "rohanmahy",
+          "authorAssociation": "OWNER",
+          "body": "now that the binding token is required, most JWTs could not be conveyed. Closing.",
+          "createdAt": "2026-11-01T14:28:41Z",
+          "updatedAt": "2026-11-01T14:28:41Z"
+        }
+      ]
     }
   ],
   "pulls": []
