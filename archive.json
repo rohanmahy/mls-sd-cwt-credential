@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-17T05:29:19.291623+00:00",
+  "timestamp": "2026-11-19T04:48:49.775702+00:00",
   "repo": "rohanmahy/mls-sd-cwt-credential",
   "labels": [
     {
@@ -102,9 +102,17 @@
       "labels": [],
       "body": "Reading -03 while assaying MLS credentials for mimid (from the remote MIMI interop table at the IETF 127 hackathon), a few gaps:\n\n1. **Key binding.** Using the MLS signature key as the confirmation key is only \"encouraged\" (\u00a73). If the cnf key is some other key, nothing binds the LeafNode's signature key to the token, which is the first Authentication Service requirement the draft quotes from RFC 9750. Requiring cnf to be the LeafNode's (or ExternalSender's) signature key would close it, or the draft could define another binding.\n2. **Verification.** There's no procedure for a member checking a credential. That would cover the issuer's signature and how its key is found and trusted, the KBT signature under cnf, the audience, time validity against the LeafNode lifetime and KeyPackage reuse, and which claims identify the user.\n3. **Audience.** \"A representation of the MLS group\" or a higher-level structure has no encoding: the group_id bytes, a room URI? Without one, a KBT made for one group verifies in another.\n4. **\"Same client.\"** RFC 9750 requirement 3 needs a rule for comparing two sd_cwt credentials: subject alone, or issuer and subject?\n5. **Codepoint.** The suggested 0x0005 is also listed for weak-multi (draft-barnes-mls-addl-creds-01) in your codepoint coordination gist.\n6. **Editorial.** \"zero of more\" (\u00a73); the member-secrets reference renders as \"\\*\\*\\* BROKEN REFERENCE \\*\\*\\*\"; mimi-protocol is cited at -06 (now -07); \u00a74 and \u00a75 are TODO.\n",
       "createdAt": "2026-11-17T03:58:28Z",
-      "updatedAt": "2026-11-17T03:58:28Z",
+      "updatedAt": "2026-11-17T16:11:48Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "MarkAtwood",
+          "authorAssociation": "NONE",
+          "body": "One more, which we hit implementing a credential type of our own (draft-atwood-mls-didwebvh-credential) in mimid:\n\n7. **`sd_jwt` isn't one vector.** The `sd_jwt` arm of `Credential` is `SdJwt`, which starts with a `Bool` and, when compacted, carries five fields. A party that doesn't support `sd_jwt` (a DS, a hub, a member before it upgrades) can't skip it, because there's no length that says where the credential ends: it reads the next field of the LeafNode from inside the credential. OpenMLS and mls-rs both carry a credential type they don't know as a single `opaque<V>`, so neither could carry this encoding. `sd_cwt` (`opaque sd_kbt<V>`) is fine. Wrapping the arm as `opaque sd_jwt<V>` holding the TLS encoding of `SdJwt` would fix it; that's what we did for did_webvh in -01.\n",
+          "createdAt": "2026-11-17T16:11:48Z",
+          "updatedAt": "2026-11-17T16:11:48Z"
+        }
+      ]
     }
   ],
   "pulls": []
